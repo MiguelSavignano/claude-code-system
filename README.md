@@ -1,3 +1,35 @@
+# Claude Code Configuration
+
+Custom agents and skills for Claude Code.
+
+---
+
+## Agents
+
+### `ci-failure-resolver`
+
+Diagnoses and resolves failing CI/CD pipelines and GitHub Actions workflows. Inspects run logs, classifies the failure (infrastructure vs. test logic), creates a fix branch, applies the fix, monitors CI, and opens a PR if checks pass.
+
+**Triggers on:** "my CI is failing", "pipeline is red", "build is broken"
+
+---
+
+### `npm-vulnerabilities-patcher`
+
+Audits npm dependencies for critical and high-severity vulnerabilities, applies fixes (`npm audit fix`), commits changes to a new branch, and creates a documented GitHub PR with a full vulnerability table.
+
+**Triggers on:** security audit requests, `npm audit` failures, routine dependency health checks
+
+---
+
+### `ruby-gem-scaffolder`
+
+Scaffolds a production-ready Ruby gem project structure interactively. Collects gem name and description, generates the full file tree (`lib/`, `spec/`, gemspec, Rakefile, RuboCop), and adds a GitHub Actions CI/CD workflow.
+
+**Triggers on:** "create a new Ruby gem", "scaffold a gem", "set up a gem structure"
+
+---
+
 # Skills
 
 Custom Claude Code skills that enforce backend architecture and HTTP tracing standards.
