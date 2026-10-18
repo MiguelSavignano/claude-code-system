@@ -1,62 +1,54 @@
 ---
 name: skill-design
-description: How to create or review a skill in your team's skills repo / plugin marketplace — the rule that a skill is the knowledge of one step, not a whole procedure, that each fact lives in exactly one skill, the name, the description, sourced and dated facts, the ~100-line limit, which plugin it goes in, and the closing checklist (README, version in plugin.json and marketplace.json, `claude plugin validate .`, PR). Use when someone says "create a skill", "add a skill for X", "review this skill" or "this should be a skill". Invoke as /skill-design [name] [plugin].
-argument-hint: "[name] [plugin]"
+description: The rules for creating or reviewing a skill in this repo — one skill is the knowledge of one step, not a procedure; each fact lives in one skill and the others link to it; what the name and the description must say; facts with source and "Checked" date; the ~100-line limit; no org-specific details disguised as generic; safety rules — plus a review checklist and the closing steps (README skills table, links in other skills, PR). Use when someone says "create a skill", "add a skill for X", "review this skill" or "this should be a skill". Invoke as /skill-design [name].
+argument-hint: "[name]"
 ---
 
-# Create or review a skill
+# skill-design — the rules for a skill in this repo
 
-Source: `docs/skill-design.md` (and `docs/contributing.md`, if your repo has one) in your team's
-skills repo — the lessons learned from reorganizing skills are recorded there. Record when this was
-last checked (e.g. "Checked YYYY-MM-DD").
+Why small skills, and the lessons behind these rules: `docs/skill-design.md`.
 
-> **One skill = the knowledge of one step, not a whole procedure.** Small skills combine
-> (`/secret-or-setting` + `/feature-flags` + `/pull-request`) without repeating anything.
+## Where it goes
 
-## Where to write it
+A clone of this repo, short-lived branch from `main`. Layout: `skills/<name>/SKILL.md`, plus
+`references/` for detail that doesn't fit. Frontmatter: `name`, `description`, optionally
+`argument-hint` and `allowed-tools`. Write in English.
 
-Always in a clone of your team's skills repo (`github.com/<org>/<skills-repo>`), on a short-lived
-branch from `main` (not in an app's repo, nor in `~/.claude/skills`). Choose the plugin by who needs
-it. Fill this in for your organization:
+## The rules
 
-| Plugin (`plugins/…`) | Goes here if… |
-|---|---|
-| `base` (`<org>`) | any team needs it and it doesn't operate deployed systems (task tracker, docs, design, how to write skills) |
-| `web` (`<org>-web`) | it's about the web apps and may touch staging or production |
-| `<domain>` (`<org>-<domain>`) | it's specific to another team or domain (e.g. firmware, data, mobile) |
-
-Layout: `plugins/<plugin>/skills/<name>/SKILL.md` (+ `references/`, `scripts/` if needed).
-Frontmatter: `name`, `description`, optionally `argument-hint`, `allowed-tools`,
-`disable-model-invocation: true` (purely procedural skills). Write in **English** so the skills
-can be shared with contractors and other teams.
-
-## Rules
-
-1. **A fact lives in exactly one skill.** Before writing, `grep -rn` under `plugins/` for what you're
-   about to say; if it's already there, link with `/name` instead of copying it.
-2. **The name states the knowledge or the decision** (`secret-or-setting`, `feature-flags`), not the
-   tool nor a generic verb.
-3. **The description says what's in the body, and when to use it.** Claude picks the skill by its
-   description: if you trim the body, trim the description.
-4. **Facts with source and date**: the file they come from (workflow, `CLAUDE.md`, a team wiki
-   note) and "Checked YYYY-MM-DD". Take them from the repos or the wiki, never from memory.
-5. **Short.** If it goes past ~100 lines, it's probably two skills.
-
-## Steps
-
-1. State which step it covers. If it covers a whole procedure, propose how to split it and which
-   existing skills already cover some of the steps.
-2. Look for duplicates (rule 1) and pick the plugin (table above).
-3. Write the `SKILL.md` with verified facts (rule 4).
-4. Update the skills that should link to it and the plugin table in `README.md`.
-5. Bump the plugin `version` in its `plugin.json` **and** in its entry in
-   `.claude-plugin/marketplace.json` (if they don't match, the validator warns; `plugin.json` wins).
-   If what the plugin contains changes, update its `description` in both places too.
-6. `claude plugin validate .` and open the PR (`/pull-request`). After the merge, the team updates
-   with `/plugin marketplace update <marketplace-name>`.
+1. **One skill = the knowledge of one step**, not a procedure from start to finish. If the draft
+   walks through a whole procedure, split it and point to the skills that already cover steps.
+2. **A fact lives in one skill.** Before writing, `grep -rn "<term>" skills/`; if it's already
+   there, link with `/name` instead of copying it.
+3. **The name states the knowledge or the decision** (`secret-or-setting`, `feature-flags`), not a
+   tool nor a generic verb. Area names already in use (`ci-cd`, `kubectl`) stay: renaming breaks links.
+4. **The description says exactly what's in the body**, then "Use when…" and "Invoke as…". Claude
+   picks the skill by it: trim the body, trim the description.
+5. **Facts with source and date**: the file they come from (workflow, `CLAUDE.md`, wiki note) and
+   "Checked YYYY-MM-DD". Unsourced → mark it "verify" or drop it. Never invent one.
+6. **~100 lines.** Past that, split it or move detail to `references/`.
+7. **No org-specific details disguised as generic.** Repo names, clusters, namespaces and stores go
+   in a placeholder (see the README) or a "Fill this in for your organization" table.
+8. **Safety.** Never print a secret's value. Confirm before anything in production and before any
+   outward action (posting, merging, messaging, transitioning a ticket).
 
 ## Reviewing an existing skill
 
-Same criteria: one step or a procedure? any fact repeated in another skill? does the description
-promise something the body no longer has? facts without a source or with a stale date?
+- [ ] One step, or a procedure? (rule 1)
+- [ ] Any fact also in another skill? `grep -rn` it (rule 2)
+- [ ] Does the description promise something the body no longer has, or miss what it has? (rule 4)
+- [ ] Facts without source, or with a stale "Checked" date? (rule 5)
+- [ ] Over ~100 lines? (rule 6)
+- [ ] Org-specific values written as if they were universal? (rule 7)
+- [ ] Prints secrets, or acts on production without confirming? (rule 8)
+
 Propose the cut before rewriting.
+
+## Closing
+
+1. Add or update the skill's row in the README skills table (right section).
+2. Update the skills that should link to it, and any link to a renamed or removed skill.
+3. Open the PR with `/pull-request`.
+
+If this repo ever becomes a plugin marketplace: bump the version in `plugin.json` and
+`marketplace.json`, and run `claude plugin validate .` before the PR.

@@ -36,7 +36,7 @@ team wiki and let the skills read them from there.
 
 | Skill | What it covers |
 |---|---|
-| `/gitflow` | Short-lived branches, conventional commits, squash merge, merge = deploy |
+| `/gitflow` | Short-lived branches, conventional commits, squash merge, one subtask = one PR |
 | `/pull-request` | Opening a PR with the team template and the ticket key linked |
 | `/ci-cd` | What runs on the PR and how each app deploys |
 | `/feature-flags` | Shipping unfinished work safely behind a flag |
@@ -47,10 +47,10 @@ team wiki and let the skills read them from there.
 
 | Skill | What it covers |
 |---|---|
-| `/secret-or-setting` | Classify a new config value and write it to every environment |
-| `/credentials` | Read and write secrets/config per store (sops, Rails credentials, GitHub secrets) |
+| `/secret-or-setting` | Decide whether a config value is a secret, a setting or a runtime switch |
+| `/credentials` | Read and write secrets per store (sops, Rails credentials, GitHub secrets) |
 | `/observability` | JSON logs in Loki, OpenTelemetry traces in Tempo, log contracts |
-| `/grafana-dashboards` | Dashboards as JSON in the repo, applied by CI |
+| `/grafana-dashboards` | Which panels to build from an app's log events, and their LogQL |
 | `/kubectl` | Inspect and operate an app's namespace safely (staging default, production confirmed) |
 | `/test-apps` | Smoke-test a UI or API against staging or local |
 
