@@ -1,0 +1,1 @@
+Launch the server with `uvicorn <project>.asgi:application --reload --reload-dir templates --reload-dir static --host 0.0.0.0 --port 8000 --log-level error`, capture any startup errors, fix them in the code, and repeat until the server starts cleanly. Then GET http://localhost:8000/<smoke-test-path>/ and verify it returns 200.
