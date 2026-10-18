@@ -77,7 +77,7 @@ gh run watch <run-id> --repo <org>/<app> --exit-status
 Each app keeps its secrets encrypted in the repo (e.g. `credentials/<environment>.enc.env`). The
 deploy job decrypts them with `sops -d` and applies them as a Kubernetes Secret that the pods
 receive as environment variables; that is why a new secret only reaches the pods with a redeploy.
-Reading or editing secrets: `/credentials`; adding a variable across all environments:
+Reading or editing secrets: `/credentials`; whether a value is a secret at all:
 `/secret-or-setting`.
 
 ## Other workflows
