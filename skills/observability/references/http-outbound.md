@@ -1,33 +1,34 @@
 # Contract A — outbound HTTP calls (`http_outbound_*`)
 
-One event before sending, one after receiving (or on error). Reference implementation: e.g. a
-Faraday middleware in your reference repo (`app/lib/faraday/http_outbound_logger.rb`).
+One event before sending, one after receiving (or on error). Implement it once per HTTP client
+library as a middleware/hook, not per call site.
 
 | event | extra keys | severity |
 |---|---|---|
-| `http_outbound_request` | `method`, `host`, `path`, `url`, `payload` (truncated ≤500 chars, omitted if nil) | info |
-| `http_outbound_response` | `method`, `host`, `path`, `url`, `status`, `duration_ms` | info |
-| `http_outbound_error` | `method`, `host`, `path`, `url`, `duration_ms`, `error_class`, `error_message` | error |
+| `http_outbound_request` | `method`, `host`, `path`, `payload_bytes` (omitted if no body) | info |
+| `http_outbound_response` | `method`, `host`, `path`, `status`, `duration_ms` | info |
+| `http_outbound_error` | `method`, `host`, `path`, `duration_ms`, `error_class`, `error_message` (see below) | error |
 
-**Never log credentials** — no tokens, no passwords, no `Authorization` values. Header
-*names* only, never values.
+What never goes in these events (rules: `/observability`, section 2):
+
+- **No full URL.** `path` is the path **without the query string**; tokens and signatures live there.
+- **No body.** Size (`payload_bytes`) or shape, never the content.
+- **No credentials.** Header names only, never values (`Authorization`, `Cookie`, API keys).
+- **`error_message`** only if the client's error cannot echo the URL or the body; otherwise omit it.
 
 ## Per-stack wiring
 
-- **Ruby** — register one `:http_outbound_logger` Faraday middleware and reuse it. Don't hand-roll it per client.
-- **Node (axios)** — request/response interceptors emitting the same three event names.
-- **Python (httpx)** — event hooks on the client, same names.
+- **Ruby (Faraday)** — one middleware registered on every client.
+- **Node (axios)** — request/response interceptors.
+- **Python (httpx)** — event hooks on the client.
 
-The shape is language-agnostic; only the transport hook differs. Keep the event names
-**identical** across languages — that is what lets one Grafana panel group by `host`
+Keep the event names **identical** across languages: that is what lets one panel group by `host`
 across apps.
 
 ## Verifying it lands
 
-With an exact-count Loki query (a Loki tool / MCP if available), using the app's real namespace
-(see `/observability`):
+An exact count, with the app's real namespace and `service_name` (`/observability`, section 3):
 
-```
-count  logql: '{namespace="<app>-staging", service_name=~"<app>.*"} | json | __error__="" | event="http_outbound_error"'
-       by: ["host"]   since: 24h
+```logql
+sum by (host) (count_over_time({namespace="<ns>-staging", service_name=~"<app>.*"} | json | __error__="" | event="http_outbound_error" [24h]))
 ```
