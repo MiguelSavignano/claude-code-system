@@ -1,99 +1,74 @@
-# Claude Code Configuration
+# claude-code-system
 
-Custom agents and skills for Claude Code.
+Skills and agents for Claude Code that encode how a web team works with AI: from refining a Jira
+ticket to shipping, observing and operating the change in production.
 
----
+They are **company-agnostic**. Organization-specific facts (repo names, clusters, namespaces, Jira
+project, design-system links, which app uses which secret store) are left as placeholders or
+"Fill this in for your organization" tables. Fill them in your own fork, or better, keep them in your
+team wiki and let the skills read them from there.
+
+## Placeholders
+
+| Placeholder | Meaning |
+|---|---|
+| `<org>` | Your GitHub / Atlassian organization |
+| `<app>` | An application / repository; `api`, `web`, `worker` are example apps |
+| `<reference-app>` | The repo your team treats as the model for conventions |
+| `PROJ`, `PROJ-123` | Your Jira project key and ticket keys |
+| `<cluster>` | Your Kubernetes cluster / kube-context |
+| `<app>-<env>` | Namespace convention (`staging`, `production`) |
+
+## Skills
+
+**Ticket lifecycle**
+
+| Skill | What it covers |
+|---|---|
+| `/ticket-lifecycle` | The overall model: the ticket is the state, four checkpoints, who can pass each one |
+| `/jira-task` | Project, issue hierarchy, epics, board states, discarding a ticket |
+| `/refinement-context` | Where to find a ticket's context and how to write it down |
+| `/acceptance-criteria` | Writing testable acceptance criteria and output artifacts |
+| `/definition-of-ready` | Pass/fail check before a ticket moves to Refined |
+| `/gate-policies` | Checkpoint policies as Jira labels (feature flag, QA, design, rollout) |
+
+**Building and shipping**
+
+| Skill | What it covers |
+|---|---|
+| `/gitflow` | Short-lived branches, conventional commits, squash merge, merge = deploy |
+| `/pull-request` | Opening a PR with the team template and the Jira key linked |
+| `/ci-cd` | What runs on the PR and how each app deploys |
+| `/feature-flags` | Shipping unfinished work safely behind a flag |
+| `/rollout-plan` | Sequencing breaking or destructive changes |
+| `/app-design` | Screen designs with design systems and per-repo canvases |
+
+**Configuration and operations**
+
+| Skill | What it covers |
+|---|---|
+| `/secret-or-setting` | Classify a new config value and write it to every environment |
+| `/credentials` | Read and write secrets/config per store (sops, Rails credentials, GitHub secrets) |
+| `/observability` | JSON logs in Loki, OpenTelemetry traces in Tempo, log contracts |
+| `/grafana-dashboards` | Dashboards as JSON in the repo, applied by CI |
+| `/kubectl` | Inspect and operate an app's namespace safely (staging default, production confirmed) |
+| `/test-apps` | Smoke-test a UI or API against staging or local |
+
+**Meta**
+
+| Skill | What it covers |
+|---|---|
+| `/skill-design` | How to write or review a skill in this repo |
+
+See [`docs/skill-design.md`](docs/skill-design.md) for how the skills fit together.
 
 ## Agents
 
-### `ci-failure-resolver`
+| Agent | What it does |
+|---|---|
+| `architect` | Senior architect and reviewer: designs implementations and stops technical debt from spreading |
 
-Diagnoses and resolves failing CI/CD pipelines and GitHub Actions workflows. Inspects run logs, classifies the failure (infrastructure vs. test logic), creates a fix branch, applies the fix, monitors CI, and opens a PR if checks pass.
+## Install
 
-**Triggers on:** "my CI is failing", "pipeline is red", "build is broken"
-
----
-
-### `npm-vulnerabilities-patcher`
-
-Audits npm dependencies for critical and high-severity vulnerabilities, applies fixes (`npm audit fix`), commits changes to a new branch, and creates a documented GitHub PR with a full vulnerability table.
-
-**Triggers on:** security audit requests, `npm audit` failures, routine dependency health checks
-
----
-
-### `ruby-gem-scaffolder`
-
-Scaffolds a production-ready Ruby gem project structure interactively. Collects gem name and description, generates the full file tree (`lib/`, `spec/`, gemspec, Rakefile, RuboCop), and adds a GitHub Actions CI/CD workflow.
-
-**Triggers on:** "create a new Ruby gem", "scaffold a gem", "set up a gem structure"
-
----
-
-# Skills
-
-Custom Claude Code skills that enforce backend architecture and HTTP tracing standards.
-
----
-
-## `backend-architecture`
-
-Enforces a 4-layer architecture across Node.js, Python, and Ruby on Rails.
-
-```
-HTTP Request
-     │
-     ▼
-┌─────────────┐   1. called first — allow or throw
-│    Guard    │   ✗ must not return business data
-└──────┬──────┘
-       │ (passes if authorized)
-       ▼
-┌─────────────┐   2. parse req, call service, return res
-│  Controller │   ✗ no business logic / DB / HTTP calls
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐   3. business logic only
-│   Service   │   ✗ no req/res objects
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐   4. external API calls
-│     Lib     │   ✗ no business logic
-└─────────────┘   ✓ traced HTTP required
-```
-
-> Guard is invoked **before any logic**: it is the first call inside the controller, not a downstream step.
-
-| Layer | File pattern | Responsibility |
-|-------|-------------|---------------|
-| Controller | `*_controller.ts/py/rb` | HTTP in → HTTP out |
-| Service | `*_service.ts/py/rb` | Business logic |
-| Lib | `lib/**`, `src/lib/**` | External HTTP / SDKs |
-| Guard | `guards/**` | Auth / pre-conditions |
-
-**Triggers on:** controller/service/lib/guard files, `app.ts`, `main.py`, `Gemfile`, `package.json`, Rails/Express/FastAPI/Flask/NestJS commands.
-
----
-
-## `http-outbound-tracing`
-
-Every outbound HTTP call from a lib file must emit structured logs in this format:
-
-```
-[HTTP_OUTBOUND] > POST https://api.stripe.com/v1/charges
-[HTTP_OUTBOUND] < 200 https://api.stripe.com/v1/charges (42ms) {"id":"ch_123"}
-[HTTP_OUTBOUND] ERROR https://api.stripe.com/v1/charges connection refused
-```
-
-| Runtime | Implementation | Entry point |
-|---------|---------------|-------------|
-| Node.js | axios interceptors | `lib/http_client.ts` → `createTracedClient()` |
-| Python | httpx event hooks | `lib/http_client.py` → `create_traced_client()` |
-| Rails (A) | Faraday middleware | `lib/http_outbound_logger.rb` + `lib/http_client.rb` |
-| Rails (B) | httplog gem | `config/initializers/httplog.rb` (global, zero-code) |
-
-> Rails Option A = fine-grained per-client control. Option B = fastest global setup with zero code changes.
-
-**Triggers on:** `lib/http_client.*`, `*_client.ts/js/py/rb`, `lib/**`, `src/lib/**`, axios/httpx/httplog install commands.
+Copy (or symlink) `skills/*` into `~/.claude/skills/` and `agents/*` into `~/.claude/agents/`, or
+into a project's `.claude/` directory to scope them to one repo.
