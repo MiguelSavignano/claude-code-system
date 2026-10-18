@@ -89,7 +89,7 @@ doesn't go through that URL:
   Always `| json | __error__=""`: one non-JSON line aborts a bare `| json`. The variable
   lets one dashboard serve staging and production; define it as a custom variable with values
   `staging,production` (or a Loki label-values query if the app's namespace naming is
-  irregular — check the namespace exceptions in `/kubectl` first).
+  irregular — list the real namespaces with `kubectl get ns` first, see `/kubectl`).
 - **`$run_id` template variable** (importer dashboards only) — a free-text/textbox
   variable, empty by default, feeding a trace-lookup **logs** panel
   (`{namespace="<ns>"} | json | __error__="" | run_id=~"$run_id"`) so pasting a `run_id` from an

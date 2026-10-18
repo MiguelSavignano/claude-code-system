@@ -1,110 +1,99 @@
 ---
 name: kubectl
-description: Inspect and operate an app's namespace on a Kubernetes cluster with kubectl — read logs, list pods, exec into app pods, run one-off console commands, check migration status. ALWAYS asks the user to (re)authenticate to the cloud provider before any kubectl call. Staging is the default; production requires explicit confirmation every time. Use when asked to "check the pods", "read the logs in staging", "open a console", "why did the migration fail". Invoke as /kubectl [app] [staging|production] [what to inspect or run].
+description: Common kubectl operations on an app's namespace — pick the right cluster with `kubectl config get-contexts` / `use-context` first, then list pods, read logs, describe failures, exec into a pod, run a one-off console command, and check migrations (including whether the app uses the common `<app>-migration(s)` Job pattern). Use when asked to "check the pods", "read the logs in staging", "open a console" or "why did the migration fail". Invoke as /kubectl [app] [staging|production] [what].
 argument-hint: "[app] [staging|production] [what]"
 ---
 
-# kubectl — operate an app's namespace
+# kubectl — common operations
 
-**Type:** procedure (runs commands against the live cluster).
+## 1. Context first, always
 
-Operate any app's namespace on the cluster `<cluster>`: read logs, list pods, exec into app pods,
-run one-off commands, check migration status, etc.
-
-## App → namespace map
-
-Namespaces, container names and sidecars belong in each app's note in **your team wiki** (e.g.
-`Architecture/apps/<app>.md`) — **resolve them from there**, don't hardcode them in this skill.
-A common convention is `<app>-<env>`, set per repo through CI variables such as
-`STAGING_K8S_NAMESPACE` / `PRODUCTION_K8S_NAMESPACE`.
-
-With `APP` = the argument or the current repo's name:
-
-1. Read the app note (through a wiki MCP if available, otherwise the wiki repo or site).
-2. If it doesn't exist under that name — an alias like `api` or `dashboard` — search the wiki for
-   the app name first.
-3. From the note, take the namespace (often visible in its monitoring/Grafana links and any prose
-   exceptions) and the app + sidecar container names.
-
-> Namespaces usually follow `<app>-<env>`, but watch for exceptions: an app whose image or namespace
-> kept an old name after a rename, or a checked-in workflow that targets a stale namespace. Always
-> confirm by listing namespaces once authenticated, and if reality differs, **update the app note**:
-> ```bash
-> kubectl get ns | grep -E 'staging|production'
-> ```
-
-## Critical rules (do not skip)
-
-1. **Always (re)authenticate *before* the first kubectl command.**
-   Cloud SSO sessions expire often; an expired session makes every kubectl call fail (on AWS EKS:
-   `Your session has expired. Please reauthenticate` and `exec: executable aws failed with exit code 255`).
-   So **before running any kubectl command**, ask the user to log in *in this session* and wait:
-
-   > Please run `! aws sso login` (or your provider's equivalent, e.g. `! gcloud auth login`,
-   > `! az login`) so I can reach the cluster, then tell me when it's done.
-
-   Do not run kubectl until they confirm. If a later call returns an expired-session error, stop and
-   ask them to log in again — never retry blindly.
-
-2. **Staging is the default target.** Operate against `<app>-staging` unless production is requested.
-
-3. **Production requires explicit confirmation — every time.**
-   NEVER run a command against a `*-production` namespace, and NEVER `set-context` to it, without
-   first **stopping and asking the user to confirm in this turn** — even for read-only commands.
-   Only after an explicit yes:
-   - scope each command with `-n <app>-production` explicitly (do not `set-context` to it),
-   - state clearly in your reply that you are running against **production**, and
-   - keep it to exactly what was approved.
-
-## Setup (once per session, after login)
-
-Make sure the kube-context is the right cluster and pin the namespace so later commands don't need `-n`:
+kubectl acts on whatever context is current, and that can be another cluster or another
+environment. Before the first command, look and choose:
 
 ```bash
-kubectl config get-contexts                          # find the context for <cluster>
-kubectl config use-context <cluster>                 # if not already current
-kubectl config set-context --current --namespace=<app>-staging
+kubectl config get-contexts                 # '*' marks the current one
+kubectl config current-context
+kubectl config use-context <context>        # the cluster you actually want
+kubectl get ns                              # find the app's namespace (often <app>-<env>)
 ```
 
-(Or pass `-n <app>-staging` on each command instead of pinning.)
+Then pass `-n <namespace>` on every command (examples below use `-n $NS`).
 
-## Common operations
+- If a call fails with an expired-session / credentials error, ask the user to log in
+  (`! aws sso login`, `! gcloud auth login`, `! az login`) and wait — don't retry blindly.
+- A **production** namespace or context: ask the user to confirm before any command, even a read.
+
+## 2. Pods and deployments
 
 ```bash
-# Pods / deployments
-kubectl get pods
-kubectl get deploy
-kubectl describe pod <pod>          # events: image pull errors, OOMKilled, failing probes
+kubectl get pods -n $NS
+kubectl get deploy,job,cronjob -n $NS
+kubectl describe pod <pod> -n $NS              # events: image pull, OOMKilled, failing probes
+kubectl get events -n $NS --sort-by=.lastTimestamp | tail -20
+kubectl rollout status deploy/<app> -n $NS
+```
 
-# Logs
-kubectl logs <pod> --tail=100
-kubectl logs deploy/<app> --tail=100
-kubectl logs <pod> --previous       # the crashed container's last run
+## 3. Logs
+
+```bash
+kubectl logs deploy/<app> -n $NS --tail=100
+kubectl logs <pod> -n $NS --tail=100 -f          # follow
+kubectl logs <pod> -n $NS --previous             # the crashed container's last run
+kubectl logs <pod> -n $NS -c <container>         # pods with sidecars (worker, cron…)
+kubectl get pod <pod> -n $NS -o jsonpath='{.spec.containers[*].name}'   # list containers
+```
+
+## 4. Exec and one-off commands
+
+Pick an app pod, not a worker, cronjob or migration pod:
+
+```bash
+POD=$(kubectl get pods -n $NS -o name | grep <app> | grep -vE 'migrat|cron|sidekiq|worker' | head -1)
+kubectl exec -it "$POD" -n $NS -- sh
 ```
 
 ### Rails apps
 
 ```bash
-# Migration hook (e.g. a Helm pre-upgrade Job) — if retained on failure, it shows the real error
-kubectl logs job/<app>-migrations --tail=80
-
-# Exec / one-off rails (pick an app pod, not a worker/cronjob/migration pod)
-POD=$(kubectl get pods -o name | grep <app> | grep -vE 'migrat|cronjob|sidekiq|worker' | head -1)
-kubectl exec "$POD" -- bundle exec rails db:migrate:status | tail -15
-kubectl exec -it "$POD" -- bundle exec rails c          # interactive console
+kubectl exec -it "$POD" -n $NS -- bundle exec rails c                          # console
+kubectl exec "$POD" -n $NS -- bundle exec rails runner 'puts User.count'       # one-off
+kubectl exec "$POD" -n $NS -- bundle exec rails db:migrate:status | tail -15   # migrations
+kubectl exec "$POD" -n $NS -- bundle exec rake -T | head -30                   # available tasks
 ```
 
-Other stacks follow the same shape: e.g. `python manage.py showmigrations` / `python manage.py shell`
-for Django, or the app's own CLI.
+### Django apps
 
-If a pod runs sidecar containers (cron, scheduler, worker), target one with `-c <container>`; take
-the exact container names from the app note.
+```bash
+kubectl exec -it "$POD" -n $NS -- python manage.py shell                       # console
+kubectl exec "$POD" -n $NS -- python manage.py shell -c 'from django.contrib.auth import get_user_model; print(get_user_model().objects.count())'
+kubectl exec "$POD" -n $NS -- python manage.py showmigrations | grep '\[ \]'   # pending migrations
+kubectl exec "$POD" -n $NS -- python manage.py check --deploy                  # settings sanity
+kubectl exec "$POD" -n $NS -- python manage.py help                            # available commands
+```
 
-## Guidance
+## 5. Migrations
 
-- Prefer **read-only** commands (get/describe/logs/migration status/SELECTs). Treat anything that
-  mutates cluster or DB state as an action needing the user's intent — confirm before running it.
-- If your migration hook uses a `hook-delete-policy` that keeps the pod on failure, after a failed
-  deploy `kubectl logs job/<app>-migrations` shows the real migration error.
-- Pair with `/ci-cd` (to ship) and `/observability` (logs and traces across pods); verify the live
-  URL afterwards from the app note.
+A common pattern is a **Job named after the app** — `<app>-migration` or `<app>-migrations` —
+often a Helm pre-install/pre-upgrade hook. **Don't assume it: check whether this app uses it.**
+
+```bash
+kubectl get jobs -n $NS | grep -i migrat
+```
+
+- **Job exists** → its logs show the real error of a failed migration:
+  ```bash
+  kubectl logs job/<app>-migrations -n $NS --tail=80
+  kubectl describe job/<app>-migrations -n $NS
+  ```
+  If the Job is gone, its hook delete policy probably removed it; the deploy logs in CI are then the
+  source.
+- **No Job** → migrations run elsewhere (an init container, the app's entrypoint, a CI step).
+  Check `kubectl describe pod` for init containers, or ask the user. Either way, the migration
+  status from an app pod is in "Rails apps" / "Django apps" above.
+
+## Rules
+
+- Prefer read-only commands (get, describe, logs, migration status). Anything that changes the
+  cluster or the database (delete, rollout restart, scale, `db:migrate`) needs the user's go-ahead.
+- Shipping is `/ci-cd`; logs and traces across pods are `/observability`.
