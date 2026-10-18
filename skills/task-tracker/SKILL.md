@@ -76,8 +76,8 @@ A single workflow for all types. Use your tool's exact state names, verbatim, in
 | `Done` | Reached the customer | — |
 | `Discard` | Not going to be done, and nothing is left installed | — ([references/discard.md](references/discard.md)) |
 
-Most trackers do not stop a ticket from jumping states: `/definition-of-ready` checks that, not
-the tool. **Do not move a ticket on your own** unless asked, and never from `Refining` to `Refined`.
+Most trackers do not stop a ticket from jumping states: people do. Before `Refined`,
+`/definition-of-ready` checks the ticket. **Do not move a ticket on your own** unless asked, and never from `Refining` to `Refined`.
 **Beware of automations that close tickets** (e.g. a PR merge closing an issue): merged is not
 delivered. Each tool reference says how to avoid it.
 

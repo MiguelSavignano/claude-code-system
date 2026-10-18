@@ -1,77 +1,70 @@
 ---
 name: definition-of-ready
-description: Checks whether a ticket (in Jira, GitHub Projects, Asana or any tracker) can move from Refining to Refined (the "Definition of Ready"), whether or not it is in the sprint — a pass/fail list with evidence taken only from the ticket: testable criteria, output artifacts, repos, expensive decisions closed, policy labels without "-ask", owner, Epic and blockers (including reversed "blocks" links). It does not move the ticket: a person always takes this step. Use in refinement, in sprint planning, or when someone asks "can I start PROJ-123?" or "which tickets are ready?". Invoke as /definition-of-ready [TICKET-KEY | sprint | refining].
+description: Checks whether a ticket (Jira, GitHub Projects, Asana or any tracker) in Refining can move to Refined (the "Definition of Ready") — a pass/fail list with evidence taken only from the ticket: in Refining, owner and Epic, goal, checkable acceptance criteria, output artifacts, repos, expensive decisions closed, policy labels without "-ask", no open blocker (including reverse "blocks" links) and design if something visible changes; the rule for which open questions may wait; and a report table (item | pass/fail | evidence). It never moves the ticket: a person always passes this step. Use in refinement, in sprint planning, or when someone asks "can I start PROJ-123?" or "which tickets are ready?". Invoke as /definition-of-ready [TICKET-KEY | sprint | refining].
 ---
 
 # definition-of-ready — can this ticket move to Refined?
 
-**Type:** check. You read, compare with the list and give a verdict. **You never transition the
-ticket**: this step is not delegated (see `/ticket-lifecycle`). Comment the result on the ticket
-only if asked.
+Source: <your working agreement> · Checked YYYY-MM-DD. Whether your team has adopted this step
+and what the tracker enforces: `/ticket-lifecycle` ("What exists").
 
-## Context
-
-- It is the `Refining` → `Refined` step (states and transitions: `/task-tracker`). Trackers
-  rarely enforce it: only this check does. A ticket that jumps to `In Progress` without going through
-  `Refined` has skipped this check.
-- Refinement can start outside the sprint and continue inside it: being in the sprint is not a
-  requirement for being ready.
-- While a team has not yet adopted policy labels, almost every ticket fails item 8 (status:
-  `/gate-policies`). Say so plainly; do not hide it.
+**Type:** check. You read, compare with the list and give a verdict. **You never move the
+ticket**, not even if asked: the ticket owner always passes "ready to start" (`/ticket-lifecycle`).
+States, transitions and refining outside the sprint: `/task-tracker`.
 
 ## Procedure
 
-1. With a key: read the ticket with its title, description, state, type, labels, parent (Epic),
-   assignee, blocking links, comments, sprint and the criteria, artifacts and design (where each
-   lives and how to read it: `/task-tracker` and its tool reference).
-   With "refining": the tickets in `Refining`; with "the sprint": those in the current sprint in
-   `To Do` or `Refining`. Repeat per ticket.
+1. With a key: read the ticket — title, description, state, type, labels, parent Epic, owner,
+   blocking links in both directions, comments, and the criteria, artifacts and design fields
+   (where each lives: `/task-tracker`). With `refining`: every ticket in `Refining`. With
+   `sprint`: the current sprint's tickets in `Refining`; list `To Do` ones apart as "triage first".
 2. **Judge only what is written in the ticket.** What you know from this conversation and is not
    in the ticket does not count: the next person who reads it will not have it.
-3. For each `is blocked by`, check the other ticket's status.
+3. For each blocking link, check the other ticket's state.
 4. Fill in the list and give the verdict.
 
 ## The list
 
-| # | Check | Passes if… |
+| # | Item | Passes if… |
 |---|---|---|
-| 1 | In refinement | It is in `Refining` (or in `To Do`, if it is being refined now). The sprint does not count |
-| 2 | Owner and Epic | It has an `assignee`, and hangs from an Epic with a domain tag (`/task-tracker`) or the description says why it has none |
+| 1 | In Refining | State is `Refining`. A `To Do` ticket fails: it goes through triage first (`/task-tracker`) |
+| 2 | Owner and Epic | It has an owner, and hangs from an Epic with a domain tag (`/task-tracker`) or says why it has none |
 | 3 | Goal | It says what is to be achieved and for whom |
-| 4 | Acceptance criteria | The acceptance criteria field or heading has them and they are testable per `/acceptance-criteria` (where, what you see, one per checkbox) |
-| 5 | Output artifacts | The output artifacts start with "Where to test" (URL or test bench, test data), every criterion has an artifact and every artifact a criterion |
-| 6 | Repos and prerequisites | It names the repos/systems it touches and the manual steps (cloud console, third-party portals) |
-| 7 | Expensive decisions closed | Data identity, permissions, legal or warranty rules and cross-repo contracts are decided. Remaining open questions are configuration and have someone to answer them |
-| 8 | Policy labels | Its team's labels are set and none ends in `-ask` (web: `/gate-policies`) |
-| 9 | No open blocker | No `is blocked by` pointing to a ticket that is not Done, and no reversed link (see `/task-tracker`) |
-| 10 | Design | If something visible changes, the UI design field or heading links the canvas and says what changes (`/app-design`); otherwise not applicable |
+| 4 | Acceptance criteria | Present and checkable per `/acceptance-criteria`, including what its ticket type requires |
+| 5 | Output artifacts | Written per `/acceptance-criteria` ("Where to test" row included); every criterion has an artifact and every artifact a criterion |
+| 6 | Repos and prerequisites | It names the repos/systems it touches and the manual steps (cloud consoles, third-party portals) |
+| 7 | Expensive decisions closed | Data identity, permissions, legal or contractual rules and cross-repo contracts are decided; open questions follow the rule below |
+| 8 | Policy labels | Its team's labels are set and none ends in `-ask` (web: `/gate-policies`). No labels in the team: "N/A — the team has no policy labels" |
+| 9 | No open blocker | No `is blocked by` to a ticket that is not Done, and no reverse "blocks" link pointing at this ticket from an unfinished one (`/task-tracker`) |
+| 10 | Design | If something visible changes, the design field links the design and says what changes (`/app-design`); otherwise N/A |
 
-Item 4 includes what its ticket type requires per `/acceptance-criteria`. In tickets created
-before the dedicated fields existed, the criteria may be in the description: it counts, and
-propose moving them to their field or heading. For the sprint, list first the ones without
-criteria.
+**Open questions** (comments in the format of `/acceptance-criteria`): one may wait if its answer
+is configuration (copy, fields, thresholds in settings) and names who answers it. If the answer
+changes code, schema or permissions, it must be answered before Refined: item 7 fails.
 
-Each item is **Pass**, **Fail** or **Not applicable** (with the reason). No "partial": if in
-doubt, it fails, and say what is missing.
+Each item is **Pass**, **Fail** or **N/A** (with the reason). No "partial": if in doubt, it
+fails, and say what is missing. Criteria still in the description of an older ticket count;
+propose moving them to their field.
 
-## Response format
+## Report
 
 ```markdown
 ### PROJ-123 · <title> — NOT READY (3 failures)
-| # | Check | Result | Evidence / what is missing |
+| # | Item | Result | Evidence / what is missing |
 |---|---|---|---|
 | 4 | Acceptance criteria | Fail | "Works well" does not say where it is checked |
 …
-**To pass:** 1. … 2. … (in order: blockers first)
+**To pass:** 1. … 2. … (blockers first)
 **Decides:** <ticket owner>
 ```
 
-With several tickets, start with a summary table (key, verdict, number of failures) and then the
-detail only for those that fail.
+With several tickets, start with a summary table (key, verdict, failures), tickets without
+criteria first, then the detail only for those that fail.
 
 ## What you do not do
 
-- You do not transition, or change labels or the description, unless asked. If asked, propose
-  the text with `/acceptance-criteria` and the labels with `/gate-policies` first.
-- You do not fix blocking links on your own: you point them out.
-- You do not mark a ticket ready because "it is understood": if it is not written, it fails.
+- Move the ticket, in any case. Change labels or description only if asked, proposing the text
+  with `/acceptance-criteria` and the labels with `/gate-policies` first. Comment the report on
+  the ticket only if asked.
+- Fix blocking links: point them out.
+- Mark a ticket ready because "it is understood": if it is not written, it fails.
