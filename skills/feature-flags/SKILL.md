@@ -56,7 +56,7 @@ with a deploy).
 4. Create the flag in the **production** admin. For a gradual rollout, turn it on first for a few
    emails or one company (`include_emails`, `include_company_ids`), then for everyone.
 5. Once it has been stable for everyone for a while: a PR that removes the check and the dead
-   code, and deletes the row. Open a cleanup ticket in Jira when you create the flag.
+   code, and deletes the row. Open a cleanup ticket in the tracker (`/task-tracker`) when you create the flag.
 
 Creating or editing a flag in production is a customer-visible change: confirm with the user
 before doing it.

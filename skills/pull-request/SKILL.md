@@ -1,7 +1,7 @@
 ---
 name: pull-request
-description: Create a pull request in one of your team's repos with the team template (Why / What / Behaviour change / Tests), a conventional-commit title, and the Jira key linked if there is one — found in the branch, in the commits, or via an Atlassian/Jira MCP search — then leave a comment with the PR link on the ticket. Use when the user asks to "open/create a PR", "push this up", or when finishing a task on a branch. Invoke as /pull-request [JIRA-KEY] [--draft].
-argument-hint: "[JIRA-KEY] [--draft]"
+description: Create a pull request in one of your team's repos with the team template (Why / What / Behaviour change / Tests), a conventional-commit title, and the ticket key linked if there is one (Jira, GitHub Issues, Asana or whatever tracker the team uses) — found in the branch, in the commits, or by searching the tracker — then leave a comment with the PR link on the ticket. Use when the user asks to "open/create a PR", "push this up", or when finishing a task on a branch. Invoke as /pull-request [TICKET-KEY] [--draft].
+argument-hint: "[TICKET-KEY] [--draft]"
 ---
 
 # pull-request — open a PR with the team template
@@ -24,19 +24,20 @@ git log --oneline origin/main..HEAD
 - Base: `main` (read the trigger in the repo's `deploy.yml` if in doubt; some repos may still deploy
   from `develop`).
 
-## 2. Find the Jira ticket
+## 2. Find the ticket
 
-In this order, and keep the first one that turns up:
+Which tracker, its key format and how to search it: `/task-tracker`. In this order, and keep the
+first one that turns up:
 
-1. The argument (`/pull-request PROJ-123`).
+1. The argument (`/pull-request PROJ-123`, `/pull-request #123`).
 2. The branch or the commits: `git rev-parse --abbrev-ref HEAD; git log --format=%s origin/main..HEAD`
-   and search for `\b[A-Z][A-Z0-9]+-[0-9]+\b` (your project keys, e.g. `PROJ-123`).
-3. If none, search with an Atlassian/Jira MCP if available (`searchJiraIssuesUsingJql`, site
-   `<org>.atlassian.net`) using the text of the change, e.g.
-   `text ~ "invoice template" AND statusCategory != Done ORDER BY updated DESC`. Propose the
-   candidate to the user; do not link it without confirmation.
-4. If there is no ticket, the PR goes out without one. Do not create one on your own (`/jira-task`
-   if the user asks).
+   and search for your key format (e.g. `\b[A-Z][A-Z0-9]+-[0-9]+\b` for `PROJ-123`, `#[0-9]+`
+   for GitHub issues).
+3. If none, search the tracker by the text of the change, open tickets first, with the tool in
+   its `/task-tracker` reference. Propose the candidate to the user; do not link it without
+   confirmation.
+4. If there is no ticket, the PR goes out without one. Do not create one on your own
+   (`/task-tracker` if the user asks).
 
 ## 3. Title
 
@@ -53,7 +54,7 @@ Write it to a temporary file in the scratchpad, in English like the rest of the 
 explain what the diff doesn't say. Delete the optional sections that don't apply.
 
 ```markdown
-Jira: [PROJ-123](https://<org>.atlassian.net/browse/PROJ-123)
+Ticket: [PROJ-123](<ticket URL>)
 
 ## Why
 
@@ -79,7 +80,8 @@ helps. If it's behind a feature flag, say which one and its state in staging and
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-- The `Jira:` line only if there is a ticket.
+- The `Ticket:` line only if there is a ticket. With GitHub issues write `Refs #123`, never
+  `Closes #123`: closing on merge would skip validation (`/task-tracker`).
 - Under **Tests** put only what was actually run, with its result. If nothing was run, say so.
 - If the repo has `.github/pull_request_template.md`, use it instead of this template.
 
@@ -92,11 +94,12 @@ gh pr create --base main --title "<title>" --body-file <file> [--draft]
 
 Return the PR URL to the user.
 
-## 6. Link it in Jira
+## 6. Link it on the ticket
 
-With a ticket: `addCommentToJiraIssue` with the PR URL (one line: `PR: <url> — <title>`). The
-GitHub-for-Jira integration also links by the key in the branch and title; the comment leaves a
-trail even if that integration isn't active. Do not change the ticket's status unless the user asks.
+With a ticket: comment on it with the PR URL (one line: `PR: <url> — <title>`), with the tool in
+its `/task-tracker` reference. Tracker integrations may also link by the key in the branch and
+title; the comment leaves a trail even if no integration is active. Do not change the ticket's
+status unless the user asks.
 
 ## Rules
 
@@ -104,4 +107,4 @@ trail even if that integration isn't active. Do not change the ticket's status u
   without confirming.
 - If the change must not be visible in production on merge, say so in the PR and name the flag
   (`/feature-flags`).
-- Never invent test results or Jira keys.
+- Never invent test results or ticket keys.

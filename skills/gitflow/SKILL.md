@@ -1,6 +1,6 @@
 ---
 name: gitflow
-description: The git flow for your team's web apps, using your reference repo as the model — a short-lived branch from `main`, a PR to `main` with unit tests and lint in CI, squash merge, and the merge deploys on its own — staging, e2e against staging, then production — with no manual step. Covers the commit convention (conventional commits, short and small), branch naming with the Jira key, and when a feature must go behind a feature flag to reach production safely. Use when starting a task, creating a branch, writing a commit, before merging a PR, or when someone asks "how does this reach production?". Invoke as /gitflow.
+description: The git flow for your team's web apps, using your reference repo as the model — a short-lived branch from `main`, a PR to `main` with unit tests and lint in CI, squash merge, and the merge deploys on its own — staging, e2e against staging, then production — with no manual step. Covers the commit convention (conventional commits, short and small), branch naming with the ticket key, and when a feature must go behind a feature flag to reach production safely. Use when starting a task, creating a branch, writing a commit, before merging a PR, or when someone asks "how does this reach production?". Invoke as /gitflow.
 ---
 
 # gitflow — from a branch to production
@@ -46,9 +46,10 @@ needed: `/gate-policies`; how flags work in each repo: `/feature-flags`.
 
 ## Branches
 
-`<type>/<JIRA-KEY>-<short-description>` — for example `feat/PROJ-123-order-export`,
-`fix/PROJ-456-login-redirect`. Without a ticket: `chore/rubocop-todo`. The key in the branch and in
-the PR title is what links the work to Jira.
+`<type>/<TICKET-KEY>-<short-description>` — for example `feat/PROJ-123-order-export`,
+`fix/PROJ-456-login-redirect` (GitHub issues: `feat/123-order-export`). Without a ticket:
+`chore/rubocop-todo`. The key in the branch and in the PR title is what links the work to the
+tracker (key format: `/task-tracker`).
 
 ## Commits
 
@@ -64,7 +65,9 @@ type(scope): present-tense summary
   commit body or the PR, not in the subject.
 - **Small:** one commit = one logical change that stands on its own. Separate refactors from
   behavior changes, and a migration from the code that uses it, when they can be reviewed apart.
-- Jira key: if there is one, at the end of the subject — `feat(orders): close the free edit window (PROJ-123)`.
+- Ticket key: if there is one, at the end of the subject — `feat(orders): close the free edit window (PROJ-123)`
+  or `(#123)`. Never `Closes #123` in a GitHub commit or PR: it closes the issue on merge, before
+  validation.
 
 ```
 feat(orders): resolve the invoice template by customer type

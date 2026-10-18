@@ -1,7 +1,7 @@
 ---
 name: refinement-context
-description: Where to look for a Jira ticket's context while refining it, and how to write it down — which source answers each question (the team wiki for decisions and proposals, the code and GitHub PRs for how things work today, Jira for previous work, read-only database and log tools for production data, the document store for drawings and release files), the rules (every fact with source and date, verified or inference, contradictions written down, only SELECT and counts in production, a search limit) and the "Context" section left in the description. With two example tickets. Use when starting to refine a ticket, before writing its criteria, or when someone asks "what already exists for this?" or "how does X work today?". Invoke as /refinement-context [JIRA-KEY].
-argument-hint: "[JIRA-KEY]"
+description: Where to look for a ticket's context while refining it, and how to write it down — which source answers each question (the team wiki for decisions and proposals, the code and GitHub PRs for how things work today, the task tracker (Jira, GitHub Projects, Asana…) for previous work, read-only database and log tools for production data, the document store for drawings and release files), the rules (every fact with source and date, verified or inference, contradictions written down, only SELECT and counts in production, a search limit) and the "Context" section left in the description. With two example tickets. Use when starting to refine a ticket, before writing its criteria, or when someone asks "what already exists for this?" or "how does X work today?". Invoke as /refinement-context [TICKET-KEY].
+argument-hint: "[TICKET-KEY]"
 ---
 
 # refinement-context — what already exists before deciding what to do
@@ -16,7 +16,7 @@ A ticket is refined on what exists, not on what someone remembers. The criteria
 | What was already decided? Is there a proposal or architecture doc? | Your team wiki, especially its architecture/proposals section | A wiki search tool / MCP, if available (search, then read the page) |
 | How does it work today? | The repo's code and its `AGENTS.md` / `CLAUDE.md` | The local clone or `gh` |
 | Who touched this and why? | Recent PRs and issues in the area | `gh pr list --search`, `gh issue list` |
-| Is there previous or related work? | Linked tickets, comments, the Epic, archived projects (read only) | Atlassian MCP (`/jira-task`) |
+| Is there previous or related work? | Linked tickets, comments, the Epic, archived projects (read only) | The tracker's tool (`/task-tracker`) |
 | How many are affected? What does the data say? | Production databases | A read-only SQL tool / MCP, if available |
 | What happens at runtime? | Logs in Loki | A Loki query tool / MCP, if available (`/observability`) |
 | Drawings, specs, release or configuration files | Your document store (e.g. SharePoint) | Its own tool or connector |
@@ -53,7 +53,7 @@ description unless asked. Whatever remains unresolved goes as a comment on the t
 - Unverified: <what is missing and who knows>
 ```
 
-When done, propose ticking `Context` in the ticket's "Refinement checklist" (`/jira-task`);
+When done, propose ticking `Context` in the ticket's refinement checklist (`/task-tracker`);
 do not tick it unless asked.
 
 ## Examples (invented, each showing one teaching point)

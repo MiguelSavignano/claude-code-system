@@ -1,6 +1,6 @@
 ---
 name: gate-policies
-description: The web team's checkpoint (gate) policies and how they map to Jira labels — ff-required / ff-none, rollout-plan, qa-dev / qa-stakeholder, design-needed / design-none and the "-ask" labels — which output artifact each one is derived from, which policy it activates at deploy, validation and delivery, the dangerous combinations, and which policies let an agent pass a checkpoint (Dependabot auto-merge, docs, tests, dashboards, revert). Use when labeling a ticket in refinement, when checking whether the labels match the spec, or when someone asks "which label do I use?", "does this need a flag?" or "can this merge on its own?". Invoke as /gate-policies [JIRA-KEY].
+description: The web team's checkpoint (gate) policies and how they map to ticket labels (Jira labels, GitHub labels, Asana tags or custom fields) — ff-required / ff-none, rollout-plan, qa-dev / qa-stakeholder, design-needed / design-none and the "-ask" labels — which output artifact each one is derived from, which policy it activates at deploy, validation and delivery, the dangerous combinations, and which policies let an agent pass a checkpoint (Dependabot auto-merge, docs, tests, dashboards, revert). Use when labeling a ticket in refinement, when checking whether the labels match the spec, or when someone asks "which label do I use?", "does this need a flag?" or "can this merge on its own?". Invoke as /gate-policies [TICKET-KEY].
 ---
 
 # gate-policies — the web team's labels and policies

@@ -1,9 +1,9 @@
 # claude-code-system
 
-Skills and agents for Claude Code that encode how a web team works with AI: from refining a Jira
+Skills and agents for Claude Code that encode how a web team works with AI: from refining a
 ticket to shipping, observing and operating the change in production.
 
-They are **company-agnostic**. Organization-specific facts (repo names, clusters, namespaces, Jira
+They are **company-agnostic**. Organization-specific facts (repo names, clusters, namespaces, tracker
 project, design-system links, which app uses which secret store) are left as placeholders or
 "Fill this in for your organization" tables. Fill them in your own fork, or better, keep them in your
 team wiki and let the skills read them from there.
@@ -12,10 +12,10 @@ team wiki and let the skills read them from there.
 
 | Placeholder | Meaning |
 |---|---|
-| `<org>` | Your GitHub / Atlassian organization |
+| `<org>` | Your GitHub / tracker organization |
 | `<app>` | An application / repository; `api`, `web`, `worker` are example apps |
 | `<reference-app>` | The repo your team treats as the model for conventions |
-| `PROJ`, `PROJ-123` | Your Jira project key and ticket keys |
+| `PROJ`, `PROJ-123` | Your tracker project and ticket keys (`#123` on GitHub) |
 | `<cluster>` | Your Kubernetes cluster / kube-context |
 | `<app>-<env>` | Namespace convention (`staging`, `production`) |
 
@@ -26,18 +26,18 @@ team wiki and let the skills read them from there.
 | Skill | What it covers |
 |---|---|
 | `/ticket-lifecycle` | The overall model: the ticket is the state, four checkpoints, who can pass each one |
-| `/jira-task` | Project, issue hierarchy, epics, board states, discarding a ticket |
+| `/task-tracker` | Project, ticket hierarchy, epics, board states, discarding a ticket — for Jira, GitHub Projects, Asana or any tracker |
 | `/refinement-context` | Where to find a ticket's context and how to write it down |
 | `/acceptance-criteria` | Writing testable acceptance criteria and output artifacts |
 | `/definition-of-ready` | Pass/fail check before a ticket moves to Refined |
-| `/gate-policies` | Checkpoint policies as Jira labels (feature flag, QA, design, rollout) |
+| `/gate-policies` | Checkpoint policies as ticket labels (feature flag, QA, design, rollout) |
 
 **Building and shipping**
 
 | Skill | What it covers |
 |---|---|
 | `/gitflow` | Short-lived branches, conventional commits, squash merge, merge = deploy |
-| `/pull-request` | Opening a PR with the team template and the Jira key linked |
+| `/pull-request` | Opening a PR with the team template and the ticket key linked |
 | `/ci-cd` | What runs on the PR and how each app deploys |
 | `/feature-flags` | Shipping unfinished work safely behind a flag |
 | `/rollout-plan` | Sequencing breaking or destructive changes |

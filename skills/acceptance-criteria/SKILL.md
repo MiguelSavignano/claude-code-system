@@ -1,6 +1,6 @@
 ---
 name: acceptance-criteria
-description: How to write the acceptance criteria (AC) and output artifacts of a Jira ticket — what makes a criterion testable, the typical failures, what each ticket type needs (story, bug, enabler, investigation), the rule that every criterion is checked against at least one artifact, and the template for the ticket fields. With one good and one bad example ticket. Use when writing or reviewing a ticket's AC, in refinement, or when someone asks "is this a good criterion?". Invoke as /acceptance-criteria [JIRA-KEY].
+description: How to write the acceptance criteria (AC) and output artifacts of a ticket (in any tracker) — what makes a criterion testable, the typical failures, what each ticket type needs (story, bug, enabler, investigation), the rule that every criterion is checked against at least one artifact, and the template for the ticket fields. With one good and one bad example ticket. Use when writing or reviewing a ticket's AC, in refinement, or when someone asks "is this a good criterion?". Invoke as /acceptance-criteria [TICKET-KEY].
 ---
 
 # Acceptance criteria and output artifacts
@@ -58,7 +58,8 @@ Typical failures, and how to fix them:
 
 ## Where each thing goes
 
-Each in its own ticket field, not in the description (keys and format: `/jira-task`):
+Each in its own ticket field, or its own heading in the description if the tracker has no rich
+fields (where and how: `/task-tracker`):
 
 | Field | Content |
 |---|---|
@@ -66,7 +67,8 @@ Each in its own ticket field, not in the description (keys and format: `/jira-ta
 | Output artifacts | Table: artifact · where it lives · final state · criterion that checks it (e.g. "PR in <repo> · GitHub → production · merged and deployed · AC 1") |
 | Comment | Each open question: `<question> — answered by <person>. Does it change code, schema or permissions? yes/no` |
 
-They are written in ADF (native checkboxes and table); in Markdown the checkboxes end up as text.
+Write them so the checkboxes stay checkboxes in your tool (e.g. ADF in Jira, Markdown in GitHub):
+the tool reference in `/task-tracker` says how.
 
 **The first row of the artifacts is always "Where to test"**: the URL of the environment where it
 is validated (or "local, test bench" if it is not deployed), the account or test data, and the
@@ -93,11 +95,11 @@ comment and the ticket was closed as Done with the criteria untouched — the an
 - **New linked ticket**, and the current one continues to delivery, if it is an improvement that
   can come later.
 - The ticket owner decides, and the decision is written in the ticket. How to mark what is
-  removed: `/jira-task` (discard).
+  removed: `/task-tracker` (discard).
 
 ## How to use it
 
-- If you are given a key, read the ticket with `getJiraIssue` and **propose** the text; do not
+- If you are given a key, read the ticket (`/task-tracker`) and **propose** the text; do not
   edit the ticket unless asked.
 - **Context comes first**: what already exists in the wiki, the code and the data → `/refinement-context`.
 - **Do not invent** criteria or thresholds: if a fact is missing, it is an open question (a

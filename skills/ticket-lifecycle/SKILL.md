@@ -1,6 +1,6 @@
 ---
 name: ticket-lifecycle
-description: How to work with AI across the ticket lifecycle — Jira and its states, GitHub and its PRs, QA with acceptance criteria and policies for changing state, with the trail on the ticket; the ticket is the state, every ticket declares its output artifacts, and it passes four gates (ready to start, deployment, validation and delivery), each with an owner and a policy saying who may pass it. Includes the map of which skill covers each step. Use when someone asks "how do we work with AI", "which gate is next", "who can pass this", or before designing a skill or agent that moves tickets. Invoke as /ticket-lifecycle.
+description: How to work with AI across the ticket lifecycle — the task tracker (Jira, GitHub Projects, Asana…) and its states, GitHub and its PRs, QA with acceptance criteria and policies for changing state, with the trail on the ticket; the ticket is the state, every ticket declares its output artifacts, and it passes four gates (ready to start, deployment, validation and delivery), each with an owner and a policy saying who may pass it. Includes the map of which skill covers each step. Use when someone asks "how do we work with AI", "which gate is next", "who can pass this", or before designing a skill or agent that moves tickets. Invoke as /ticket-lifecycle.
 ---
 
 # ticket-lifecycle — the ticket lifecycle on one page
@@ -10,10 +10,10 @@ a proposal until your team adopts it, and state what is automated and what is no
 
 ## The idea
 
-Bring together what a Scrum team already does — **Jira and its states, GitHub and its PRs, QA
+Bring together what a Scrum team already does — **the tracker and its states, GitHub and its PRs, QA
 with acceptance criteria and state changes driven by policies** — and write down the agreements
 that used to be made verbally. Once written, AI can step in to refine, code and validate, alone
-or alongside a person, and everything leaves a trail in one place: the Jira ticket. It does not
+or alongside a person, and everything leaves a trail in one place: the ticket. It does not
 forbid vibe coding: inside `In Progress` you work however you like; the lifecycle says which
 state the ticket is in, which policy applies and what counts as delivered.
 
@@ -29,7 +29,7 @@ migration, the email that reaches the account manager, a written decision).
 
 ## The four gates
 
-| Gate | The question | Jira | Can an agent pass it? |
+| Gate | The question | States | Can an agent pass it? |
 |---|---|---|---|
 | **1 · Ready to start** | Do we agree on when it is done? | Refining → Refined | **Never.** The ticket owner passes it → `/definition-of-ready` checks it |
 | **2 · Deployment** | Is it safe to put it where it will be validated? | In Progress → Validating | Only with a policy (e.g. Dependabot auto-merge) |
@@ -50,7 +50,7 @@ ticket: **empty** (no output artifact crosses it: "Deployment: no artifacts to d
 policy** (which policy was applied and its evidence) or **by decision** (who and when).
 
 Each gate has an **owner** (a person or team, accountable for the decision) and a **policy** the
-owner approves. Policies show up in Jira as **labels**, derived from the output artifacts; if they
+owner approves. Policies show up on the ticket as **labels**, derived from the output artifacts; if they
 clash, the artifacts win. **Each department defines its policies and labels in its own plugin**;
 the web team's are in `/gate-policies`.
 
@@ -58,7 +58,7 @@ the web team's are in `/gate-policies`.
 
 | Step | Skill |
 |---|---|
-| Create the ticket in `PROJ` with the right type; board states and transitions | `/jira-task` |
+| Create the ticket in `PROJ` with the right type; board states and transitions; how your tracker does each | `/task-tracker` |
 | Find the context before refining (wiki, code, PRs, data) | `/refinement-context` |
 | Write acceptance criteria and output artifacts | `/acceptance-criteria` |
 | Can it move to Refined? | `/definition-of-ready` |
@@ -77,7 +77,7 @@ the web team's are in `/gate-policies`.
 
 | Piece | Status |
 |---|---|
-| The workflow states exist in `PROJ`; does Jira block any jump? (`/jira-task`) | e.g. states exist, no jump is blocked |
+| The workflow states exist in `PROJ`; does the tracker block any jump? (`/task-tracker`) | e.g. states exist, no jump is blocked |
 | Policy labels in use (`/gate-policies`) | e.g. not yet |
 | Webhooks or agents connected to state changes | e.g. none: skills are launched by hand |
 

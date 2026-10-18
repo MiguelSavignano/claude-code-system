@@ -21,7 +21,7 @@ it. Fill this in for your organization:
 
 | Plugin (`plugins/…`) | Goes here if… |
 |---|---|
-| `base` (`<org>`) | any team needs it and it doesn't operate deployed systems (Jira, docs, design, how to write skills) |
+| `base` (`<org>`) | any team needs it and it doesn't operate deployed systems (task tracker, docs, design, how to write skills) |
 | `web` (`<org>-web`) | it's about the web apps and may touch staging or production |
 | `<domain>` (`<org>-<domain>`) | it's specific to another team or domain (e.g. firmware, data, mobile) |
 

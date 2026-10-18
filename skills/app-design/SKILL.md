@@ -71,7 +71,7 @@ instructions (returned by a `read` of the artifact) define the file format.
 2. If there's no domain for it, create the page and add it to the table above.
 3. "Today | proposal" row + note. The proposal follows the app repo's rules (e.g. never disable the
    submit button, all copy through i18n — whatever that repo's `AGENTS.md` says).
-4. If it's for a ticket, link the page and rows in its "UI design" field, with what changes in each
-   (`/jira-task`). The design lives in the canvas; the ticket only links to it.
+4. If it's for a ticket, link the page and rows in its UI design field or heading, with what changes
+   in each (`/task-tracker`). The design lives in the canvas; the ticket only links to it.
 5. Sharing: the canvas is shared with the organization from its Share menu (the owner does it;
    Claude can't change it).
