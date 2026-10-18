@@ -1,110 +1,70 @@
 ---
 name: pull-request
-description: Create a pull request in one of your team's repos with the team template (Why / What / Behaviour change / Tests), a conventional-commit title, and the ticket key linked if there is one (Jira, GitHub Issues, Asana or whatever tracker the team uses) — found in the branch, in the commits, or by searching the tracker — then leave a comment with the PR link on the ticket. Use when the user asks to "open/create a PR", "push this up", or when finishing a task on a branch. Invoke as /pull-request [TICKET-KEY] [--draft].
+description: Open a pull request in one of your team's repos — find the ticket key (argument, branch, commits, then ask; tracker search only if a tool is available), write the body with the repo's `.github/pull_request_template.md` if it exists or else the team template (Why / What / Behaviour change / Tests), link the ticket with a non-closing `Refs <KEY>`, choose draft or ready, and — after showing the user the title, body and ticket and getting confirmation — push the branch, run `gh pr create` against the repo's deploy branch and comment the PR link on the ticket. Use when the user asks to "open/create a PR", "push this up", or when finishing a task on a branch. Invoke as /pull-request [TICKET-KEY] [--draft].
 argument-hint: "[TICKET-KEY] [--draft]"
 ---
 
 # pull-request — open a PR with the team template
 
-**Type:** procedure (pushes the branch and creates the PR with `gh`).
-
-General flow and commit convention: `/gitflow`. Reference example: pick one good PR in your
-reference repo (`https://github.com/<org>/<reference-app>/pull/<n>`) and link it here.
+**Type:** procedure (pushes, creates the PR with `gh`, comments on the ticket). Branch, commit and
+title convention: `/gitflow` · deploy branch per repo: `/ci-cd` · key format, search, comment: `/task-tracker`.
 
 ## 1. Check the branch
 
 ```bash
+git fetch origin
 git status --short
-git rev-parse --abbrev-ref HEAD
-git log --oneline origin/main..HEAD
+git log --oneline origin/<base>..HEAD    # <base> = the branch this repo deploys from (/ci-cd)
 ```
 
-- If you are on `main`, stop: create a branch first (`<type>/<KEY>-<description>`).
-- If there are uncommitted changes, ask whether they belong in the PR.
-- Base: `main` (read the trigger in the repo's `deploy.yml` if in doubt; some repos may still deploy
-  from `develop`).
+On `<base>` itself, stop and branch first (`/gitflow`). Uncommitted changes: ask whether they belong.
 
-## 2. Find the ticket
+## 2. Find the ticket key
 
-Which tracker, its key format and how to search it: `/task-tracker`. In this order, and keep the
-first one that turns up:
+First hit wins: the argument → the branch name → commit subjects (`git log --format=%s
+origin/<base>..HEAD`) → ask the user. Search the tracker by text only if a tracker tool is
+available, to propose a candidate. A key not given as the argument is **confirmed with the user**
+before use. No ticket is fine: the PR goes out without one; never create or invent one.
 
-1. The argument (`/pull-request PROJ-123`, `/pull-request #123`).
-2. The branch or the commits: `git rev-parse --abbrev-ref HEAD; git log --format=%s origin/main..HEAD`
-   and search for your key format (e.g. `\b[A-Z][A-Z0-9]+-[0-9]+\b` for `PROJ-123`, `#[0-9]+`
-   for GitHub issues).
-3. If none, search the tracker by the text of the change, open tickets first, with the tool in
-   its `/task-tracker` reference. Propose the candidate to the user; do not link it without
-   confirmation.
-4. If there is no ticket, the PR goes out without one. Do not create one on your own
-   (`/task-tracker` if the user asks).
+## 3. Title and body
 
-## 3. Title
-
-Conventional commit, short, in English, with the key at the end if there is one. It will become the
-commit on `main` after the squash.
-
-```
-feat(orders): resolve the invoice template by customer type (PROJ-123)
-```
-
-## 4. Body
-
-Write it to a temporary file in the scratchpad, in English like the rest of the repo. Keep it short:
-explain what the diff doesn't say. Delete the optional sections that don't apply.
+- **Title:** follows the commit convention in `/gitflow` (it becomes the commit on merge).
+- **Body:** if the repo has `.github/pull_request_template.md`, use it — it wins. Otherwise:
 
 ```markdown
-Ticket: [PROJ-123](<ticket URL>)
+Refs <KEY>
 
 ## Why
-
-<The problem or need, in 2–5 lines. Concrete data if there is any.>
+<The problem or need in 2–5 lines; concrete data if any.>
 
 ## What
-
-- <Change 1: what and where (table, service, endpoint, screen).>
-- <Change 2.>
-- <Migrations, docs or OpenAPI updated.>
+- <Each change: what and where (table, service, endpoint, screen); migrations, docs.>
 
 ## Behaviour change after deploy
-
-<Optional. What a user or integrator sees differently after deploy; a before/after table if it
-helps. If it's behind a feature flag, say which one and its state in staging and production.>
+<Optional. What users or integrators see differently; flag name and state if behind one.>
 
 ## Tests
-
-- `<command run>`: <actual result, e.g. 571 examples, 0 failures>.
-- <What the new tests cover.>
-- <Manual checks: migration up/down, staging, etc.>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+- `<command run>`: <actual result>. <Manual checks.> If nothing was run, say so.
 ```
 
-- The `Ticket:` line only if there is a ticket. With GitHub issues write `Refs #123`, never
-  `Closes #123`: closing on merge would skip validation (`/task-tracker`).
-- Under **Tests** put only what was actually run, with its result. If nothing was run, say so.
-- If the repo has `.github/pull_request_template.md`, use it instead of this template.
+- **`Refs <KEY>`, never `Closes` / `Fixes`:** the tracker state is moved by people, and a closing
+  keyword moves it on merge, before validation (`/task-tracker`). Omit the line with no ticket.
+- Explain what the diff does not; drop optional sections that don't apply; never invent results.
+  Write it to a scratchpad file. Add a footer/attribution only if the user's or harness's policy asks.
 
-## 5. Create the PR
+## 4. Draft or ready
+
+**Draft** if the user passes `--draft`, the work is incomplete or CI should not run yet; otherwise
+ready. If it must not be visible in production on merge, name the flag that hides it (`/feature-flags`).
+
+## 5. Confirm, then push and create
+
+Show the user the title, base, body, draft/ready and the target ticket; only after an explicit yes:
 
 ```bash
 git push -u origin HEAD
-gh pr create --base main --title "<title>" --body-file <file> [--draft]
+gh pr create --base <base> --title "<title>" --body-file <file> [--draft]
 ```
 
-Return the PR URL to the user.
-
-## 6. Link it on the ticket
-
-With a ticket: comment on it with the PR URL (one line: `PR: <url> — <title>`), with the tool in
-its `/task-tracker` reference. Tracker integrations may also link by the key in the branch and
-title; the comment leaves a trail even if no integration is active. Do not change the ticket's
-status unless the user asks.
-
-## Rules
-
-- Do not open the PR from `main`, or against a base other than the one the repo deploys from,
-  without confirming.
-- If the change must not be visible in production on merge, say so in the PR and name the flag
-  (`/feature-flags`).
-- Never invent test results or ticket keys.
+Return the PR URL. With a ticket, comment `PR: <url> — <title>` on it (how: `/task-tracker`); it is
+outward-facing too, so include it in that confirmation. Do not change the ticket's state unless asked.
